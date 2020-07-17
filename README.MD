@@ -2,6 +2,7 @@
 >* pytorch1.1
 >* imageio
 >* tqdm
+>* opencv-python
 
 # Quick start
 
