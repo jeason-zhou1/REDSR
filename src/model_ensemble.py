@@ -21,10 +21,10 @@ files = os.listdir(paths[0])
 for i, each in enumerate(files):
     for path_num, j in enumerate(paths):
         each_pic = cv2.imread(j+'/'+each)
-        print(i,each,type(each_pic))
+        # print(i,each,type(each_pic))
         list_pic[path_num] = each_pic
     
     array = np.asarray(list_pic)
     y = array.mean(axis=0)
-    print(y.shape)
-    cv2.imwrite(save_path+'/'+each,y)
+    print(y.shape,save_path+'/'+each[:-8]+'.png')
+    cv2.imwrite(save_path+'/'+each[:-8]+'.png',y)
