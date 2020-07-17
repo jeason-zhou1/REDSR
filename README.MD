@@ -5,7 +5,9 @@
 
 # Quick start
 
+Prepare the pre-trained model and test picture and place them in the specified location
 ```shell
+mkdir testLR_X4
 cd src
 sh run.sh
 ```
