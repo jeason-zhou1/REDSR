@@ -2,7 +2,7 @@ import os
 from data import srdata
 import glob
 
-class AIM(srdata.SRData):
+class BENCH(srdata.SRData):
     def __init__(self, args, name='AIM', train=True, benchmark=False):
         data_range = [r.split('-') for r in args.data_range.split('/')]
         if train:
@@ -14,7 +14,7 @@ class AIM(srdata.SRData):
                 data_range = data_range[1]
 
         self.begin, self.end = list(map(lambda x: int(x), data_range))
-        super(AIM, self).__init__(
+        super(BENCH, self).__init__(
             args, name=name, train=train, benchmark=benchmark
         )
 
@@ -24,20 +24,20 @@ class AIM(srdata.SRData):
         )
         # print(len(names_hr))
         names_lr = sorted(
-            glob.glob(os.path.join(self.dir_lr, '*' + self.ext[0]))
+            glob.glob(os.path.join(self.dir_lr, 'X{}/*'.format(self.scale[0]) + self.ext[0]))
         )
         # print(names_lr)
 
         return names_hr, [names_lr]
 
     def _set_filesystem(self, dir_data):
-        super(AIM, self)._set_filesystem(dir_data)
-        self.apath = os.path.join(self.apath,'X{}'.format(self.args.scale[0]))
+        super(BENCH, self)._set_filesystem(dir_data)
+        # self.apath = os.path.join(self.apath,'X{}'.format(self.args.scale[0]))
         if self.train:
             self.dir_hr = os.path.join(self.apath, 'HR')
-            self.dir_lr = os.path.join(self.apath, 'LR')
+            self.dir_lr = os.path.join(self.apath, 'LR_bicubic')
         else:
             self.dir_hr = os.path.join(self.apath, 'valid/HR')
             self.dir_lr = os.path.join(self.apath, 'valid/LR')
         if self.input_large: self.dir_lr += 'L'
-        print(self.dir_hr)
+        # print(self.dir_hr,self.dir_lr)

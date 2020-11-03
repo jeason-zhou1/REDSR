@@ -51,7 +51,7 @@ class RRDB(nn.Module):
         out3 = self.RDB3(out2)
         out = self.conv1(torch.cat((out1,out2,out3),1))
         out = self.ca(out)
-        return out * 0.2 + x
+        return out + x
 
 class NONLocalBlock2D(nn.Module):
     def __init__(self, in_channels, inter_channels=None, mode='embedded_gaussian',

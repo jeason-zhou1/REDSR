@@ -21,10 +21,15 @@ def main():
         t.test()
     else:
         if checkpoint.ok:
+            # print(1)
             loader = data.Data(args)
+            # print(1)
             _model = model.Model(args, checkpoint)
+            # print(1)
             _loss = loss.Loss(args, checkpoint) if not args.test_only else None
+            # print(1)
             t = Trainer(args, loader, _model, _loss, checkpoint)
+            # print(1)
             while not t.terminate():
                 t.train()
                 t.test()

@@ -8,7 +8,7 @@ from torch.nn.parallel import DistributedDataParallel
 import math
 
 def make_model(args, parent=False):
-    return NLSR(args,3,3,64,16)
+    return NLSR(args,3,3,64,20)
 
 class ResidualDenseBlock_5C(nn.Module):
     def __init__(self, nf=64, gc=32, bias=True):
@@ -51,7 +51,7 @@ class RRDB(nn.Module):
         out3 = self.RDB3(out2)
         out = self.conv1(torch.cat((out1,out2,out3),1))
         out = self.ca(out)
-        return out * 0.2 + x
+        return out + x
 
 class NONLocalBlock2D(nn.Module):
     def __init__(self, in_channels, inter_channels=None, mode='embedded_gaussian',
@@ -146,7 +146,7 @@ class CALayer(nn.Module):
         y = self.conv_du(y)
         y = torch.sigmoid(y)
         y = F.interpolate(y,x.size()[2:])
-        return x * y
+        return x * y*0.2 + y
 
 
 class Nonlocal(nn.Module):

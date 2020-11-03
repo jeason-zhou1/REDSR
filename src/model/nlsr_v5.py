@@ -51,7 +51,7 @@ class RRDB(nn.Module):
         out3 = self.RDB3(out2)
         out = self.conv1(torch.cat((out1,out2,out3),1))
         out = self.ca(out)
-        return out * 0.2 + x
+        return out + x
 
 class NONLocalBlock2D(nn.Module):
     def __init__(self, in_channels, inter_channels=None, mode='embedded_gaussian',
@@ -132,8 +132,8 @@ class CALayer(nn.Module):
     def __init__(self, channel, reduction=16):
         super(CALayer, self).__init__()
         # global average pooling: feature --> point
-        self.avg_pool = nn.AdaptiveAvgPool2d(4)
-        self.max_pool = nn.AdaptiveMaxPool2d(4)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        # self.max_pool = nn.AdaptiveMaxPool2d(4)
         # feature channel downscale and upscale --> channel weight
         self.conv_du = nn.Sequential(
                 nn.Conv2d(channel, channel // reduction, 1, padding=0, bias=True),
@@ -142,10 +142,10 @@ class CALayer(nn.Module):
         )
 
     def forward(self, x):
-        y = self.avg_pool(x)+self.max_pool(x)
+        y = self.avg_pool(x)
         y = self.conv_du(y)
         y = torch.sigmoid(y)
-        y = F.interpolate(y,x.size()[2:])
+        # y = F.interpolate(y,x.size()[2:])
         return x * y
 
 

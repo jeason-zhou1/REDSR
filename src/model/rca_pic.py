@@ -7,8 +7,8 @@ from model import common
 from torch.nn.parallel import DistributedDataParallel
 import math
 
-def make_model(args, parent=False):
-    return NLSR(args,3,3,64,16)
+def make_model( parent=False):
+    return CALayer(64)
 
 class ResidualDenseBlock_5C(nn.Module):
     def __init__(self, nf=64, gc=32, bias=True):
@@ -144,7 +144,7 @@ class CALayer(nn.Module):
     def forward(self, x):
         y = self.avg_pool(x)+self.max_pool(x)
         y = self.conv_du(y)
-        y = torch.sigmoid(y)
+        y = F.softmax(y,dim=1)
         y = F.interpolate(y,x.size()[2:])
         return x * y
 
@@ -181,11 +181,12 @@ class Nonlocal(nn.Module):
 
 
 class NLSR(nn.Module):
-    def __init__(self, args, in_nc, out_nc, nf, nb, gc=32):
+    def __init__(self,  in_nc, out_nc, nf, nb, gc=32):
         super(NLSR, self).__init__()
-        self.sub_mean = common.MeanShift(args.rgb_range)
-        self.add_mean = common.MeanShift(args.rgb_range, sign=1)
-        self.scale = args.scale[0]
+        self.ca = CALayer(nf)
+        self.sub_mean = common.MeanShift(255)
+        self.add_mean = common.MeanShift(255, sign=1)
+        self.scale = 4
         # self.scale=4
 
         self.conv_first = nn.Conv2d(in_nc, nf, 3, 1, 1, bias=True)
@@ -208,26 +209,27 @@ class NLSR(nn.Module):
     
     def forward(self,x):
         # print(x.max())
-        x = self.sub_mean(x)
-        # print('submean:',x.max())
-        fea = self.conv_first(x)
-        # print('fea1:',fea.max())
-        fea = self.non_local(fea)
-        # print('fea:',fea.max())
-        trunk = self.trunk_conv(self.RRDB_trunk(fea))
-        # print('trunk:',trunk.max())
-        fea = fea + trunk
-        if self.scale==2:
-            fea = self.lrelu(self.upconv1(F.interpolate(fea, scale_factor=2, mode='nearest')))
-        elif self.scale==3:
-            fea = self.lrelu(self.upconv1(F.interpolate(fea, scale_factor=3, mode='nearest')))
-        elif self.scale==4:
-            fea = self.lrelu(self.upconv1(F.interpolate(fea, scale_factor=2, mode='nearest')))
-            fea = self.lrelu(self.upsample2(self.upconv2(fea)))
-        out = self.conv_last(self.lrelu(self.HRconv(fea)))
-        out = self.add_mean(out)
-        # print(out)
-        return out
+        # x = self.sub_mean(x)
+        # # print('submean:',x.max())
+        # fea = self.conv_first(x)
+        # # print('fea1:',fea.max())
+        # fea = self.non_local(fea)
+        # # print('fea:',fea.max())
+        # trunk = self.trunk_conv(self.RRDB_trunk(fea))
+        # # print('trunk:',trunk.max())
+        # fea = fea + trunk
+        # if self.scale==2:
+        #     fea = self.lrelu(self.upconv1(F.interpolate(fea, scale_factor=2, mode='nearest')))
+        # elif self.scale==3:
+        #     fea = self.lrelu(self.upconv1(F.interpolate(fea, scale_factor=3, mode='nearest')))
+        # elif self.scale==4:
+        #     fea = self.lrelu(self.upconv1(F.interpolate(fea, scale_factor=2, mode='nearest')))
+        #     fea = self.lrelu(self.upsample2(self.upconv2(fea)))
+        # out = self.conv_last(self.lrelu(self.HRconv(fea)))
+        # out = self.add_mean(out)
+        # # print(out)
+        x = self.ca(x)
+        return x
 
 
 

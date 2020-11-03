@@ -183,8 +183,24 @@ def quantize(img, rgb_range):
     pixel_range = 255 / rgb_range
     return img.mul(pixel_range).clamp(0, 255).round().div(pixel_range)
 
+def set_channel(*args, n_channels=3):
+    def _set_channel(img):
+        if img.ndim == 2:
+            img = np.expand_dims(img, axis=2)
+
+        c = img.shape[2]
+        if n_channels == 1 and c == 3:
+            img = np.expand_dims(sc.rgb2ycbcr(img)[:, :, 0], 2)
+        elif n_channels == 3 and c == 1:
+            img = np.concatenate([img] * n_channels, 2)
+
+        return img
+
+    return [_set_channel(a) for a in args]
+
 def calc_psnr(sr, hr, scale, rgb_range, dataset=None):
     if hr.nelement() == 1: return 0
+    # sr = set_channel(sr)
 
     diff = (sr - hr) / rgb_range
     if dataset and dataset.dataset.benchmark:

@@ -55,7 +55,7 @@ def set_template(args):
         args.n_resblocks = 20
         args.n_feats = 64
         args.patch_size = 41
-        args.lr = 1e-1
+        args.lr = 1e-4
         
     if args.template.find('GAN') >= 0:
         args.epochs = 200

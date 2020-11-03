@@ -28,6 +28,8 @@ class Loss(nn.modules.loss._Loss):
                 loss_function = nn.MSELoss()
             elif loss_type == 'L1':
                 loss_function = nn.L1Loss()
+            elif loss_type == 'CB':
+                loss_function = otherloss.CharbonnierLoss()
             elif loss_type == 'L1Clip':
                 loss_function = otherloss.ClipL1()
             elif loss_type == 'SSIM':

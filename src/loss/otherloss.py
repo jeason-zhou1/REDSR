@@ -22,6 +22,18 @@ class ClipL1(nn.Module):
         loss = torch.mean(torch.clamp(torch.abs(sr-hr), self.clip_min, self.clip_max))
         return loss
 
+class CharbonnierLoss(nn.Module):
+    """Charbonnier Loss (L1)"""
+
+    def __init__(self, eps=4e-2):
+        super(CharbonnierLoss, self).__init__()
+        self.eps = eps
+
+    def forward(self, x, y):
+        diff = x - y
+        loss = torch.mean(torch.sqrt(diff * diff + self.eps))
+        return loss
+
 def _fspecial_gauss_1d(size, sigma):
     r"""Create 1-D gauss kernel
     Args:

@@ -67,6 +67,7 @@ class SRData(data.Dataset):
 
     # Below functions as used to prepare images
     def _scan(self):
+        # print('aaaa',name_hr,names_lr)
         names_hr = sorted(
             glob.glob(os.path.join(self.dir_hr, '*' + self.ext[0]))
         )
@@ -98,7 +99,11 @@ class SRData(data.Dataset):
 
     def __getitem__(self, idx):
         lr, hr, filename = self._load_file(idx)
+        # print('getting')
+        # print("pre",lr.shape,hr.shape)
+        lr,hr = common.set_channel(lr,hr, n_channels=self.args.n_colors)
         pair = self.get_patch(lr, hr)
+        # print("posr",lr.shape,hr.shape)
         pair = common.set_channel(*pair, n_channels=self.args.n_colors)
         pair_t = common.np2Tensor(*pair, rgb_range=self.args.rgb_range)
 
@@ -120,6 +125,7 @@ class SRData(data.Dataset):
         idx = self._get_index(idx)
         f_hr = self.images_hr[idx]
         f_lr = self.images_lr[self.idx_scale][idx]
+        # print(f_lr)
 
         filename, _ = os.path.splitext(os.path.basename(f_hr))
         if self.args.ext == 'img' or self.benchmark:

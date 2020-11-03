@@ -8,7 +8,7 @@ from torch.nn.parallel import DistributedDataParallel
 import math
 
 def make_model(args, parent=False):
-    return NLSR(args,3,3,64,16)
+    return NLSR(args,3,3,64,20)
 
 class ResidualDenseBlock_5C(nn.Module):
     def __init__(self, nf=64, gc=32, bias=True):
@@ -51,7 +51,7 @@ class RRDB(nn.Module):
         out3 = self.RDB3(out2)
         out = self.conv1(torch.cat((out1,out2,out3),1))
         out = self.ca(out)
-        return out * 0.2 + x
+        return out + x
 
 class NONLocalBlock2D(nn.Module):
     def __init__(self, in_channels, inter_channels=None, mode='embedded_gaussian',
@@ -132,8 +132,8 @@ class CALayer(nn.Module):
     def __init__(self, channel, reduction=16):
         super(CALayer, self).__init__()
         # global average pooling: feature --> point
-        self.avg_pool = nn.AdaptiveAvgPool2d(4)
-        self.max_pool = nn.AdaptiveMaxPool2d(4)
+        self.avg_pool = nn.AdaptiveAvgPool2d(2)
+        self.max_pool = nn.AdaptiveMaxPool2d(2)
         # feature channel downscale and upscale --> channel weight
         self.conv_du = nn.Sequential(
                 nn.Conv2d(channel, channel // reduction, 1, padding=0, bias=True),
@@ -146,7 +146,7 @@ class CALayer(nn.Module):
         y = self.conv_du(y)
         y = torch.sigmoid(y)
         y = F.interpolate(y,x.size()[2:])
-        return x * y
+        return x * y + y
 
 
 class Nonlocal(nn.Module):

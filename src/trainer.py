@@ -28,10 +28,12 @@ class Trainer():
         self.error_last = 1e8
 
     def train(self):
+        # print(1)
         self.loss.step()
         epoch = self.optimizer.get_last_epoch() + 1
+        # print(2)
         lr = self.optimizer.get_lr()
-
+        # print(3)
         self.ckp.write_log(
             '[Epoch {}]\tLearning rate: {:.2e}\t model:{} scale:{}\tsave path:{}'.format(epoch, Decimal(lr),self.args.model,self.args.scale,self.args.save)
         )
@@ -42,6 +44,22 @@ class Trainer():
         # TEMP
         self.loader_train.dataset.set_scale(0)
         for batch, (lr, hr, hf, _) in enumerate(self.loader_train):
+
+            # print(lr.shape,type(lr),type(hf))
+            if False:
+                print(hf)
+                hf = hf*50
+                img_hr = hr.numpy()
+                img_hf = hf.numpy()
+                img_hr = img_hr.transpose(0,2,3,1)
+                img_hf = img_hf.transpose(0,2,3,1)
+                import imageio
+                for i,_ in enumerate(img_hr):
+                    imhr = img_hr[i]
+                    imhf = img_hf[i]
+                    imageio.imwrite('{}_hr.png'.format(i),imhr)
+                    imageio.imwrite('{}_hf.png'.format(i),imhf)
+
             lr, hr, hf = self.prepare(lr, hr,hf)
             timer_data.hold()
             timer_model.tic()
@@ -97,10 +115,14 @@ class Trainer():
                 d.dataset.set_scale(idx_scale)
                 for lr, hr, filename in tqdm(d, ncols=80):
                     lr, hr = self.prepare(lr, hr)
+
                     # print(lr.shape)
                     sr = self.model(lr, idx_scale)
+                    # sr = utility.set_channel(sr)
+                    height,width = sr.shape[2:]
+                    hr = hr[:,:,:height,:width]
                     sr = utility.quantize(sr, self.args.rgb_range)
-
+                    # print(sr.shape)
                     save_list = [sr]
                     # 每个测试数据集的每个图片测试的psnr都叠加进去
                     psnr = utility.calc_psnr(

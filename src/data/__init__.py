@@ -11,6 +11,7 @@ class MyConcatDataset(ConcatDataset):
 
     def set_scale(self, idx_scale):
         for d in self.datasets:
+            # print(0)
             if hasattr(d, 'set_scale'): d.set_scale(idx_scale)
 
 class Data:
@@ -19,11 +20,19 @@ class Data:
         if not args.test_only:
             datasets = []
             for d in args.data_train:
-                module_name = d if d.find('DIV2K-Q') < 0 else 'DIV2KJPEG'
-                m = import_module('data.' + module_name.lower())
-                datasets.append(getattr(m, module_name)(args, name=d))
+                # print(d)
+                if d in ['Set5', 'Set14', 'BSD100', 'Urban100']:
+                    # print(d)
+                    m = import_module('data.bench')
+                    # print(2)
+                    datasets.append(getattr(m, 'BENCH')(args, name=d,benchmark=False))
+                    # print(3)
+                else:
+                    module_name = d if d.find('DIV2K-Q') < 0 else 'DIV2KJPEG'
+                    m = import_module('data.' + module_name.lower())
+                    datasets.append(getattr(m, module_name)(args, name=d))
 
-
+            # print(datasets[0])
             self.loader_train = dataloader.DataLoader(
                 MyConcatDataset(datasets),
                 batch_size=args.batch_size,
@@ -31,6 +40,7 @@ class Data:
                 pin_memory=not args.cpu,
                 num_workers=args.n_threads,
             )
+            # print(5)
 
         self.loader_test = []
         for d in args.data_test:
@@ -51,3 +61,4 @@ class Data:
                     num_workers=args.n_threads,
                 )
             )
+        # print(6)
